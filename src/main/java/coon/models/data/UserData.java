@@ -32,12 +32,7 @@ public class UserData extends Data implements RowMapper<UserData> {
     }
 
 
-    private UserData() {
-    }
-
-
-    public static UserData Map() {
-        return new UserData();
+    public UserData() {
     }
 
 

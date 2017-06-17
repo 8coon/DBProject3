@@ -39,7 +39,7 @@ public class Users {
     public UserData get(String nickname) {
         return this.jdbc.queryForObject(
                 "SELECT * FROM Users WHERE lower(nickname) = lower(?) LIMIT 1",
-                UserData.Map(),
+                new UserData(),
                 nickname
         );
     }
@@ -53,7 +53,7 @@ public class Users {
 
             return this.jdbc.query(
                     "SELECT * FROM Users WHERE lower(nickname) = lower(?)",
-                    UserData.Map(),
+                    new UserData(),
                     nickname
             );
         }
@@ -61,14 +61,14 @@ public class Users {
         if (nickname == null) {
             return this.jdbc.query(
                     "SELECT * FROM Users WHERE lower(email) = lower(?)",
-                    UserData.Map(),
+                    new UserData(),
                     email
             );
         }
 
         return this.jdbc.query(
                 "SELECT * FROM Users WHERE lower(email) = lower(?) OR lower(nickname) = lower(?)",
-                UserData.Map(),
+                new UserData(),
                 email, nickname
         );
     }
@@ -80,7 +80,7 @@ public class Users {
         return this.jdbc.queryForObject(
                 "UPDATE Users SET fullname = ?, email = ?, about = ? WHERE lower(nickname) = lower(?)" +
                         "RETURNING *",
-                UserData.Map(),
+                new UserData(),
                 newUser.getFullName(), newUser.getEmail(), newUser.getAbout(), newUser.getNickname()
         );
     }

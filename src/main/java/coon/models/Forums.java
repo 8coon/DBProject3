@@ -36,4 +36,13 @@ public class Forums {
         return forum;
     }
 
+
+    public ForumData get(String slug) {
+        return this.jdbc.queryForObject(
+                "SELECT * FROM Forums WHERE lower(slug) = lower(?) LIMIT 1",
+                new ForumData(),
+                slug
+        );
+    }
+
 }

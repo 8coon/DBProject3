@@ -28,18 +28,17 @@ public class ForumData extends Data implements RowMapper<ForumData> {
         this.author = author;
     }
 
-    private ForumData(){
+    public ForumData() {
     }
-
-    public ForumData Map() {
-        return new ForumData();
-    }
-
 
 
     @Override
     public ForumData mapRow(ResultSet resultSet, int i) throws SQLException {
-        return null;
+        return new ForumData(
+                resultSet.getString("slug"),
+                resultSet.getString("title"),
+                resultSet.getString("author")
+        );
     }
 
 
