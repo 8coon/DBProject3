@@ -1,9 +1,9 @@
 
 DROP TABLE IF EXISTS Users;
 CREATE TABLE Users (
-  nickname TEXT UNIQUE,
+  nickname TEXT,
   fullname TEXT,
-  email TEXT,
+  email TEXT UNIQUE,
   about TEXT
 );
 

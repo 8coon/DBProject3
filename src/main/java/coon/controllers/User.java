@@ -4,11 +4,12 @@ package coon.controllers;
 import coon.models.Users;
 import coon.models.data.UserData;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -25,20 +26,24 @@ public class User {
 
 
     @PostMapping("/{nickname}/create")
-    public ResponseEntity<UserData> create(
+    public ResponseEntity<?> create(
             @PathVariable String nickname,
             @RequestBody UserData user
     ) {
         user.setNickname(nickname);
+        List<UserData> found = this.users.all(nickname, user.getEmail());
 
-        try {
+        if (found.size() == 0) {
             return new ResponseEntity<>(
                     this.users.create(user),
-                    HttpStatus.OK
+                    HttpStatus.CREATED
             );
-        } catch (DuplicateKeyException e) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
+
+        return new ResponseEntity<>(
+                found,
+                HttpStatus.CONFLICT
+        );
     }
 
 
@@ -58,10 +63,29 @@ public class User {
 
 
     @PostMapping("/{nickname}/profile")
-    public ResponseEntity<UserData> getProfile(
+    public ResponseEntity<?> getProfile(
             @PathVariable String nickname,
             @RequestBody UserData user
     ) {
+        List<UserData> found = this.users.all(null, user.getEmail());
+        boolean conflict = false;
+
+        if (found.size() > 0) {
+            for (UserData foundUser: found) {
+                if (!foundUser.getNickname().equalsIgnoreCase(nickname)) {
+                    conflict = true;
+                    break;
+                }
+            }
+        }
+
+        if (conflict) {
+            return new ResponseEntity<>(
+                    found,
+                    HttpStatus.CONFLICT
+            );
+        }
+
         try {
             return new ResponseEntity<>(
                     this.users.set(nickname, user),

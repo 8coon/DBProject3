@@ -3,9 +3,14 @@ package coon.models;
 
 import coon.models.data.UserData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Repository
@@ -21,12 +26,13 @@ public class Users {
     }
 
 
-    public UserData create(UserData in) {
+    public UserData create(UserData user) {
         this.jdbc.update(
                 "INSERT INTO Users (nickname, fullname, email, about) VALUES (?, ?, ?, ?)",
-                in.getNickname(), in.getFullName(), in.getEmail(), in.getAbout()
+                user.getNickname(), user.getFullName(), user.getEmail(), user.getAbout()
         );
-        return in;
+
+        return user;
     }
 
 
@@ -35,6 +41,35 @@ public class Users {
                 "SELECT * FROM Users WHERE lower(nickname) = lower(?) LIMIT 1",
                 UserData.Map(),
                 nickname
+        );
+    }
+
+
+    public List<UserData> all(String nickname, String email) {
+        if (email == null) {
+            if (nickname == null) {
+                return new ArrayList<>();
+            }
+
+            return this.jdbc.query(
+                    "SELECT * FROM Users WHERE lower(nickname) = lower(?)",
+                    UserData.Map(),
+                    nickname
+            );
+        }
+
+        if (nickname == null) {
+            return this.jdbc.query(
+                    "SELECT * FROM Users WHERE lower(email) = lower(?)",
+                    UserData.Map(),
+                    email
+            );
+        }
+
+        return this.jdbc.query(
+                "SELECT * FROM Users WHERE lower(email) = lower(?) OR lower(nickname) = lower(?)",
+                UserData.Map(),
+                email, nickname
         );
     }
 

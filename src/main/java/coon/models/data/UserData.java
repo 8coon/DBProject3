@@ -70,6 +70,7 @@ public class UserData extends Data implements RowMapper<UserData> {
         this.nickname = nickname;
     }
 
+    @JsonProperty("fullname")
     public String getFullName() {
         return fullName;
     }
