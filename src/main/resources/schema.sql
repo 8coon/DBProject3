@@ -22,7 +22,9 @@ CREATE TABLE Threads (
   slug TEXT UNIQUE,
   author TEXT,
   title TEXT,
-  created TIMESTAMPTZ
+  created TIMESTAMPTZ,
+  forum TEXT,
+  message TEXT
 );
 
 
