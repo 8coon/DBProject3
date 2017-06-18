@@ -118,6 +118,7 @@ public class PostData extends Data implements RowMapper<PostData> {
         this.created = created;
     }
 
+    @JsonProperty("isEdited")
     public boolean isEdited() {
         return isEdited;
     }

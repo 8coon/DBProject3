@@ -74,7 +74,7 @@ public class PostDetailsData implements RowMapper<PostDetailsData> {
                 continue;
             }
 
-            if (relation.equalsIgnoreCase("author")) {
+            if (relation.equalsIgnoreCase("user")) {
                 details.author = new UserData(
                         resultSet.getString("author_nickname"),
                         resultSet.getString("author_fullname"),

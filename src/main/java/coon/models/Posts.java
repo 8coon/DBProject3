@@ -26,15 +26,13 @@ public class Posts {
     private JdbcTemplate jdbc;
     private Users users;
     private Forums forums;
-    private Threads threads;
 
 
     @Autowired
-    public Posts(JdbcTemplate jdbc, Users users, Forums forums, Threads threads) {
+    public Posts(JdbcTemplate jdbc, Users users, Forums forums) {
         this.jdbc = jdbc;
         this.users = users;
         this.forums = forums;
-        this.threads = threads;
 
         if (Application.triggered.compareAndSet(true, true)) {
             return;
@@ -45,7 +43,21 @@ public class Posts {
                         "BEGIN\n" +
                         "\n" +
                         "  IF NEW.parent > 0 THEN\n" +
-                        "    NEW.path = (SELECT path FROM Posts WHERE id = NEW.parent LIMIT 1) || NEW.id;\n" +
+                        "    CREATE TEMPORARY TABLE parent AS" +
+                        "       SELECT thread, path FROM Posts WHERE id = NEW.parent LIMIT 1;\n" +
+                        "    IF (SELECT count(*) FROM parent) = 0 THEN\n" +
+                        "      DROP TABLE parent;\n" +
+                        "      RAISE EXCEPTION 'Parent post does not exist!';\n" +
+                        "    END IF;\n" +
+                        "    \n" +
+                        "    NEW.path = (SELECT path FROM parent) || NEW.id;\n" +
+                        "    \n" +
+                        "    IF NEW.thread <> (SELECT thread FROM parent) THEN\n" +
+                        "      DROP TABLE parent;" +
+                        "      RAISE EXCEPTION 'Parent post belongs to another thread!';\n" +
+                        "    END IF;\n" +
+                        "    \n" +
+                        "    DROP TABLE parent;\n" +
                         "  ELSE\n" +
                         "    NEW.path = array[]::INT[] || NEW.id;\n" +
                         "  END IF;\n" +
@@ -120,10 +132,8 @@ public class Posts {
                 }
             }
 
-            e1.printStackTrace();
+            throw new DataIntegrityViolationException("Parent post belongs to another thread");
         }
-
-        return null;
     }
 
 
@@ -198,7 +208,7 @@ public class Posts {
                 continue;
             }
 
-            if (relation.equalsIgnoreCase("author")) {
+            if (relation.equalsIgnoreCase("user")) {
                 selects.add(" Users.nickname AS author_nickname," +
                         " Users.fullname AS author_fullname, " +
                         " Users.email AS author_email, " +
@@ -241,6 +251,25 @@ public class Posts {
                         + " FROM Posts " + joins.toString() + " WHERE Posts.id = ? LIMIT 1",
                 new PostDetailsData(related),
                 id
+        );
+    }
+
+
+    public PostData set(int id, PostData post) {
+        PostData oldPost = this.jdbc.queryForObject(
+                "SELECT * FROM Posts WHERE id = ? LIMIT 1",
+                new PostData(),
+                id
+        );
+
+        if (post.getMessage() == null || oldPost.getMessage().equals(post.getMessage())) {
+            return oldPost;
+        }
+
+        return this.jdbc.queryForObject(
+                "UPDATE Posts SET message = ?, isEdited = ? WHERE id = ? RETURNING *",
+                new PostData(),
+                post.getMessage(), true, id
         );
     }
 

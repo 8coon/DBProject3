@@ -4,6 +4,7 @@ package coon.controllers;
 import coon.models.*;
 import coon.models.data.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,10 +43,16 @@ public class Thread {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(
-                this.posts.create(posts, thread),
-                HttpStatus.CREATED
-        );
+        try {
+            return new ResponseEntity<>(
+                    this.posts.create(posts, thread),
+                    HttpStatus.CREATED
+            );
+        } catch (DataIntegrityViolationException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        } catch (EmptyResultDataAccessException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
 
