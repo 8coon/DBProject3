@@ -14,7 +14,6 @@ import java.util.List;
 
 
 @Repository
-@Transactional
 public class Users {
 
     private JdbcTemplate jdbc;

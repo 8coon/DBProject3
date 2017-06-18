@@ -17,7 +17,6 @@ import java.util.List;
 
 
 @Repository
-@Transactional
 public class Threads {
 
     private JdbcTemplate jdbc;

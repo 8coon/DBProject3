@@ -14,7 +14,6 @@ import java.util.List;
 
 
 @Repository
-@Transactional
 public class Forums {
 
     private JdbcTemplate jdbc;
@@ -62,17 +61,23 @@ public class Forums {
     public void addMember(String forum, String author) {
         try {
             this.jdbc.queryForObject(
-                    "SELECT author FROM Members WHERE lower(forum) = lower(?) AND lower(author) = lower(?) " +
-                            "LIMIT 1",
+                    "SELECT author FROM Members WHERE " +
+                            "lower(forum) = lower(?) AND lower(author) = lower(?) " +
+                            " LIMIT 1",
                     String.class,
                     forum, author
             );
         } catch (EmptyResultDataAccessException e) {
             UserData user = this.users.get(author);
 
-            this.jdbc.update(
+            /*this.jdbc.update(
                     "INSERT INTO Members (forum, author, fullname, email, about) VALUES (?, ?, ?, ?, ?)",
                     forum, user.getNickname(), user.getFullName(), user.getEmail(), user.getAbout()
+            );*/
+
+            this.jdbc.update(
+                    "INSERT INTO Members (forum, author) VALUES (?, ?)",
+                    forum, user.getNickname()
             );
         }
     }
@@ -82,6 +87,18 @@ public class Forums {
         String order = (desc ? "DESC" : "ASC");
 
         return this.jdbc.query(
+                "SELECT Members.forum, Members.author, Users.nickname, " +
+                        "Users.about AS about, Users.fullname AS fullname, Users.email AS email " +
+                        "FROM Members JOIN Users ON (lower(Users.nickname) = lower(Members.author)) WHERE " +
+                        "lower(Members.forum) = lower(?) " +
+                        (since != null ? "AND lower(Members.author) " + (desc ? "<" : ">") + " lower(?)"
+                                : "AND ?::TEXT IS NULL")+
+                        " ORDER BY lower(Members.author) " + order + " LIMIT ?",
+                new UserData(),
+                forum, since, limit
+        );
+
+        /*return this.jdbc.query(
                 "SELECT *, author AS nickname FROM Members WHERE " +
                         "lower(forum) = lower(?) " +
                         (since != null ? "AND lower(author) " + (desc ? "<" : ">") + " lower(?)"
@@ -89,7 +106,7 @@ public class Forums {
                         " ORDER BY lower(author) " + order + " LIMIT ?",
                 new UserData(),
                 forum, since, limit
-        );
+        );*/
     }
 
 }

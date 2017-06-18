@@ -20,7 +20,6 @@ import java.util.Map;
 
 
 @Repository
-@Transactional
 public class Posts {
 
     private JdbcTemplate jdbc;
@@ -77,6 +76,11 @@ public class Posts {
 
     public List<PostData> create(List<PostData> posts, ThreadData thread) {
         String created = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+
+        if (posts.size() > 0 && posts.get(0).getCreated() != null) {
+            created = posts.get(0).getCreated();
+        }
+
         Connection conn = null;
 
         try {
