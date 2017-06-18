@@ -24,7 +24,8 @@ CREATE TABLE Threads (
   title TEXT,
   created TIMESTAMPTZ,
   forum TEXT,
-  message TEXT
+  message TEXT,
+  votes INT
 );
 
 
@@ -32,19 +33,19 @@ DROP TABLE IF EXISTS Posts;
 CREATE TABLE Posts (
   id SERIAL,
   author TEXT,
-  thread TEXT,
   forum TEXT,
+  thread INT,
   message TEXT,
   created TIMESTAMPTZ,
   isEdited BOOLEAN,
-  parent INT DEFAULT 0
+  parent INT DEFAULT 0,
+  path INT[]
 );
 
 
 DROP TABLE IF EXISTS Votes;
 CREATE TABLE Votes (
-  post INT,
-  voter TEXT,
-  value INT
+  thread INT,
+  author TEXT,
+  voice INT
 );
-

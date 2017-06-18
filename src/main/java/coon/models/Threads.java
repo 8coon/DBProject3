@@ -1,10 +1,12 @@
 package coon.models;
 
 
+import coon.controllers.Thread;
 import coon.models.data.ForumData;
 import coon.models.data.ThreadData;
 import coon.models.data.UserData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +55,16 @@ public class Threads {
     }
 
 
-    public ThreadData get(String slug) {
+    public ThreadData get(int id) {
+        return this.jdbc.queryForObject(
+                "SELECT * FROM Threads WHERE id = ? LIMIT 1",
+                new ThreadData(),
+                id
+        );
+    }
+
+
+    public ThreadData withSlug(String slug) {
         return this.jdbc.queryForObject(
                 "SELECT * FROM Threads WHERE lower(slug) = lower(?) LIMIT 1",
                 new ThreadData(),
@@ -86,6 +97,55 @@ public class Threads {
                 new ThreadData(),
                 forum, since, limit
         );
+    }
+
+
+    public ThreadData resolve(String slugOrId) {
+        try {
+            int id = Integer.valueOf(slugOrId);
+            return this.get(id);
+        } catch (NumberFormatException e1) {
+            return this.withSlug(slugOrId);
+        }
+    }
+
+
+    public ThreadData updateVotes(ThreadData thread) {
+        this.jdbc.update(
+                "UPDATE Threads SET votes = ? WHERE id = ?",
+                thread.getVotes(), thread.getId()
+        );
+
+        return thread;
+    }
+
+
+    public ThreadData vote(UserData author, ThreadData thread, int voice) {
+        try {
+            VoiceData lastVoice = this.jdbc.queryForObject(
+                    "SELECT * FROM Votes WHERE lower(author) = lower(?) AND thread = ? LIMIT 1",
+                    new VoiceData(),
+                    author.getNickname(), thread.getId()
+            );
+
+            thread.setVotes(thread.getVotes() + voice - lastVoice.getVoice());
+            this.updateVotes(thread);
+
+            this.jdbc.update(
+                    "UPDATE Votes SET voice = ? WHERE lower(author) = lower(?) AND thread = ?",
+                    voice, author.getNickname(), thread.getId()
+            );
+        } catch (EmptyResultDataAccessException e) {
+            thread.setVotes(thread.getVotes() + voice);
+            this.updateVotes(thread);
+
+            this.jdbc.update(
+                    "INSERT INTO Votes (author, thread, voice) VALUES (?, ?, ?)",
+                    author.getNickname(), thread.getId(), voice
+            );
+        }
+
+        return thread;
     }
 
 

@@ -12,60 +12,60 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 
-public class ThreadData extends Data implements RowMapper<ThreadData> {
+public class PostData extends Data implements RowMapper<PostData> {
 
 
     private String author;
-    private String created;
     private String forum;
+    private int thread;
     private int id;
     private String message;
-    private String title;
-    private String slug;
-    private int votes;
+    private String created;
+    private boolean isEdited;
+    private int parent;
 
 
     @JsonCreator
-    public ThreadData(
+    public PostData(
             @JsonProperty("author") String author,
-            @JsonProperty("created") String created,
             @JsonProperty("forum") String forum,
+            @JsonProperty("thread") int thread,
             @JsonProperty("id") int id,
             @JsonProperty("message") String message,
-            @JsonProperty("title") String title,
-            @JsonProperty("slug") String slug,
-            @JsonProperty("votes") int votes
+            @JsonProperty("created") String created,
+            @JsonProperty("isEdited") boolean isEdited,
+            @JsonProperty("parent") int parent
     ) {
         this.author = author;
-        this.created = created;
         this.forum = forum;
+        this.thread = thread;
         this.id = id;
         this.message = message;
-        this.title = title;
-        this.slug = slug;
-        this.votes = votes;
+        this.created = created;
+        this.isEdited = isEdited;
+        this.parent = parent;
     }
 
-    public ThreadData() {
+    public PostData() {
     }
 
 
     @Override
-    public ThreadData mapRow(ResultSet resultSet, int i) throws SQLException {
-        return new ThreadData(
+    public PostData mapRow(ResultSet resultSet, int i) throws SQLException {
+        return new PostData(
                 resultSet.getString("author"),
+                resultSet.getString("forum"),
+                resultSet.getInt("thread"),
+                resultSet.getInt("id"),
+                resultSet.getString("message"),
                 LocalDateTime.ofInstant(
                         resultSet.getTimestamp("created").toInstant(),
                         ZoneOffset.ofHours(0)
                 ).format(
                         DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
                 ),
-                resultSet.getString("forum"),
-                resultSet.getInt("id"),
-                resultSet.getString("message"),
-                resultSet.getString("title"),
-                resultSet.getString("slug"),
-                resultSet.getInt("votes")
+                resultSet.getBoolean("isEdited"),
+                resultSet.getInt("parent")
         );
     }
 
@@ -78,20 +78,20 @@ public class ThreadData extends Data implements RowMapper<ThreadData> {
         this.author = author;
     }
 
-    public String getCreated() {
-        return created;
-    }
-
-    public void setCreated(String created) {
-        this.created = created;
-    }
-
     public String getForum() {
         return forum;
     }
 
     public void setForum(String forum) {
         this.forum = forum;
+    }
+
+    public int getThread() {
+        return thread;
+    }
+
+    public void setThread(int thread) {
+        this.thread = thread;
     }
 
     public int getId() {
@@ -110,29 +110,28 @@ public class ThreadData extends Data implements RowMapper<ThreadData> {
         this.message = message;
     }
 
-    public String getTitle() {
-        return title;
+    public String getCreated() {
+        return created;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setCreated(String created) {
+        this.created = created;
     }
 
-    public String getSlug() {
-        return slug;
+    public boolean isEdited() {
+        return isEdited;
     }
 
-    public void setSlug(String slug) {
-        this.slug = slug;
+    public void setEdited(boolean edited) {
+        isEdited = edited;
     }
 
-    public int getVotes() {
-        return votes;
+    public int getParent() {
+        return parent;
     }
 
-    public void setVotes(int votes) {
-        this.votes = votes;
+    public void setParent(int parent) {
+        this.parent = parent;
     }
-
 
 }

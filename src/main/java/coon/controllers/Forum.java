@@ -90,9 +90,20 @@ public class Forum {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
+        ThreadData found;
+
+        try {
+            found = this.threads.withSlug(thread.getSlug());
+        } catch (EmptyResultDataAccessException e) {
+            return new ResponseEntity<>(
+                    this.threads.create(thread, forum, author),
+                    HttpStatus.CREATED
+            );
+        }
+
         return new ResponseEntity<>(
-                this.threads.create(thread, forum, author),
-                HttpStatus.CREATED
+                found,
+                HttpStatus.CONFLICT
         );
     }
 
