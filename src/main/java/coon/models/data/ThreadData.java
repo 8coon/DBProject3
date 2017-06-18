@@ -50,6 +50,20 @@ public class ThreadData extends Data implements RowMapper<ThreadData> {
     }
 
 
+    public ThreadData merge(ThreadData other) {
+        return new ThreadData(
+                this.author,
+                this.created,
+                this.forum,
+                this.id,
+                Data.value(other.getMessage(), this.message),
+                Data.value(other.getTitle(), this.title),
+                this.slug,
+                this.votes
+        );
+    }
+
+
     @Override
     public ThreadData mapRow(ResultSet resultSet, int i) throws SQLException {
         return new ThreadData(

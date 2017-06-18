@@ -12,7 +12,9 @@ DROP TABLE IF EXISTS Forums;
 CREATE TABLE Forums (
   slug   TEXT UNIQUE,
   title  TEXT,
-  author TEXT
+  author TEXT,
+  posts INT,
+  threads INT
 );
 
 
@@ -48,4 +50,14 @@ CREATE TABLE Votes (
   thread INT,
   author TEXT,
   voice INT
+);
+
+
+DROP TABLE IF EXISTS Members;
+CREATE TABLE Members (
+  forum TEXT,
+  author TEXT,
+  fullname TEXT,
+  email TEXT,
+  about TEXT
 );

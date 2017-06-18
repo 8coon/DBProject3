@@ -1,4 +1,4 @@
-package coon.models;
+package coon.models.data;
 
 
 import com.fasterxml.jackson.annotation.JsonCreator;

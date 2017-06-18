@@ -1,7 +1,6 @@
 package coon.controllers;
 
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import coon.models.*;
 import coon.models.data.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,7 +104,7 @@ public class Thread {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<PostData> posts = null;
+        List<PostData> posts;
         int marker = 0;
 
         if (sort.equalsIgnoreCase("flat")) {
@@ -126,6 +125,26 @@ public class Thread {
 
         return new ResponseEntity<>(
                 new PostQueryData(offset + marker, posts),
+                HttpStatus.OK
+        );
+    }
+
+
+    @PostMapping("/{slug_or_id}/details")
+    public ResponseEntity<ThreadData> set(
+            @PathVariable("slug_or_id") String slugOrId,
+            @RequestBody ThreadData data
+    ) {
+        ThreadData thread;
+
+        try {
+            thread = this.threads.resolve(slugOrId);
+        } catch (EmptyResultDataAccessException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(
+                this.threads.set(thread, data),
                 HttpStatus.OK
         );
     }

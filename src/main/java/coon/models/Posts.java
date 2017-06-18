@@ -2,10 +2,7 @@ package coon.models;
 
 
 import coon.Application;
-import coon.models.data.ForumData;
-import coon.models.data.PostData;
-import coon.models.data.ThreadData;
-import coon.models.data.UserData;
+import coon.models.data.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -17,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 @Repository
@@ -81,6 +80,7 @@ public class Posts {
 
             for (PostData post: posts) {
                 post.setAuthor(this.users.get(post.getAuthor()).getNickname());
+                this.forums.addMember(thread.getForum(), post.getAuthor());
                 post.setForum(thread.getForum());
                 post.setThread(thread.getId());
                 post.setCreated(created);
@@ -102,6 +102,10 @@ public class Posts {
             while (ids.next()) {
                 posts.get(ids.getRow() - 1).setId(ids.getInt("id"));
             }
+
+            ForumData forum = this.forums.get(thread.getForum());
+            forum.setPosts(forum.getPosts() + posts.size());
+            this.forums.set(forum);
 
             ids.close();
             conn.close();
@@ -171,6 +175,72 @@ public class Posts {
                         " , id " + order,
                 new PostData(),
                 thread.getId(), limit, offset, thread.getId()
+        );
+    }
+
+
+    public PostDetailsData details(int id, String[] related) {
+        StringBuilder joins = new StringBuilder();
+        List<String> selects = new ArrayList<>();
+
+        for (String relation: related) {
+            if (relation.equalsIgnoreCase("post")) {
+                selects.add(" Posts.author AS Posts_author," +
+                        " Posts.forum AS Posts_forum, " +
+                        " Posts.thread AS Posts_thread," +
+                        " Posts.id AS Posts_id, " +
+                        " Posts.message AS Posts_message, " +
+                        " Posts.created AS Posts_created," +
+                        " Posts.isEdited AS Posts_isEdited," +
+                        " Posts.parent AS Posts_parent "
+                );
+
+                continue;
+            }
+
+            if (relation.equalsIgnoreCase("author")) {
+                selects.add(" Users.nickname AS author_nickname," +
+                        " Users.fullname AS author_fullname, " +
+                        " Users.email AS author_email, " +
+                        " Users.about AS author_about "
+                );
+
+                joins.append(" JOIN Users ON (lower(Users.nickname) = lower(Posts.author)) ");
+                continue;
+            }
+
+            if (relation.equalsIgnoreCase("thread")) {
+                selects.add(" Threads.author AS Threads_author," +
+                        " Threads.forum AS Threads_forum, " +
+                        " Threads.slug AS Threads_slug," +
+                        " Threads.id AS Threads_id, " +
+                        " Threads.message AS Threads_message, " +
+                        " Threads.created AS Threads_created, " +
+                        " Threads.title AS Threads_title, " +
+                        " Threads.votes AS Threads_votes "
+                );
+
+                joins.append(" JOIN Threads ON (Threads.id = thread) ");
+                continue;
+            }
+
+            if (relation.equalsIgnoreCase("forum")) {
+                selects.add(" Forums.slug AS Forums_slug," +
+                        " Forums.author AS Forums_author, " +
+                        " Forums.title AS Forums_title, " +
+                        " Forums.posts AS Forums_posts, " +
+                        " Forums.threads AS Forums_threads "
+                );
+
+                joins.append(" JOIN Forums ON (lower(Forums.slug) = lower(Posts.forum)) ");
+            }
+        }
+
+        return this.jdbc.queryForObject(
+                "SELECT " + String.join(", ", selects)
+                        + " FROM Posts " + joins.toString() + " WHERE Posts.id = ? LIMIT 1",
+                new PostDetailsData(related),
+                id
         );
     }
 

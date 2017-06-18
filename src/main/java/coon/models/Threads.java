@@ -1,10 +1,10 @@
 package coon.models;
 
 
-import coon.controllers.Thread;
 import coon.models.data.ForumData;
 import coon.models.data.ThreadData;
 import coon.models.data.UserData;
+import coon.models.data.VoiceData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -36,6 +36,11 @@ public class Threads {
     public ThreadData create(ThreadData thread, ForumData forum, UserData author) {
         thread.setAuthor(author.getNickname());
         thread.setForum(forum.getSlug());
+
+        forum = this.forums.get(forum.getSlug());
+        forum.setThreads(forum.getThreads() + 1);
+        this.forums.set(forum);
+        this.forums.addMember(forum.getSlug(), author.getNickname());
 
         if (thread.getCreated() == null) {
             thread.setCreated(LocalDateTime.now().format(
@@ -146,6 +151,19 @@ public class Threads {
         }
 
         return thread;
+    }
+
+
+    public ThreadData set(ThreadData thread, ThreadData data) {
+        ThreadData newThread = thread.merge(data);
+
+        return this.jdbc.queryForObject(
+                "UPDATE Threads SET " +
+                        "message = ?, title = ?" +
+                        " WHERE id = ? RETURNING *",
+                new ThreadData(),
+                newThread.getMessage(), newThread.getTitle(), newThread.getId()
+        );
     }
 
 

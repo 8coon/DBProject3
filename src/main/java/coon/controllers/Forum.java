@@ -127,4 +127,24 @@ public class Forum {
         );
     }
 
+
+    @GetMapping("/{slug}/users")
+    public ResponseEntity<List<UserData>> users(
+            @PathVariable("slug") String slug,
+            @RequestParam(name = "limit", defaultValue = "100", required = false) int limit,
+            @RequestParam(name = "since", required = false) String since,
+            @RequestParam(name = "desc", defaultValue = "false", required = false) boolean desc
+    ) {
+        try {
+            this.forums.get(slug);
+        } catch (EmptyResultDataAccessException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(
+                this.forums.members(slug, since, limit, desc),
+                HttpStatus.OK
+        );
+    }
+
 }
