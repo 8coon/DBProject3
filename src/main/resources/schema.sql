@@ -82,12 +82,12 @@ DROP INDEX IF EXISTS PostsParent;
 CREATE INDEX PostsParent ON Posts (parent);
 
 
-DROP INDEX IF EXISTS PostsCreated;
-CREATE INDEX PostsCreated ON Posts (created);
+--DROP INDEX IF EXISTS PostsCreated;
+--CREATE INDEX PostsCreated ON Posts (created);
 
 
 DROP INDEX IF EXISTS PostsThread;
-CREATE INDEX PostsTHread ON Posts (thread);
+CREATE INDEX PostsThread ON Posts (thread);
 
 
 DROP TABLE IF EXISTS Votes;
@@ -105,12 +105,9 @@ CREATE UNIQUE INDEX VotesThreadAuthor ON Votes (thread, lower(author));
 DROP TABLE IF EXISTS Members;
 CREATE TABLE Members (
   forum TEXT,
-  author TEXT,
-  fullname TEXT,
-  email TEXT,
-  about TEXT
+  author TEXT
 );
 
 
 DROP INDEX IF EXISTS MembersForumAuthor;
-CREATE INDEX MembersForumAuthor ON Members (lower(forum), lower(author));
+CREATE UNIQUE INDEX MembersForumAuthor ON Members (lower(forum), lower(author));

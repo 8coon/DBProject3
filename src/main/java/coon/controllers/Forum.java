@@ -137,6 +137,9 @@ public class Forum {
             @RequestParam(name = "since", required = false) String since,
             @RequestParam(name = "desc", defaultValue = "false", required = false) boolean desc
     ) {
+        System.out.println("Forum get users on " + slug + " limit " + limit + " since " + since +
+                " desc " + desc);
+
         try {
             this.forums.get(slug);
         } catch (EmptyResultDataAccessException e) {

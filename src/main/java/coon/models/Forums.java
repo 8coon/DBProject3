@@ -70,11 +70,6 @@ public class Forums {
         } catch (EmptyResultDataAccessException e) {
             UserData user = this.users.get(author);
 
-            /*this.jdbc.update(
-                    "INSERT INTO Members (forum, author, fullname, email, about) VALUES (?, ?, ?, ?, ?)",
-                    forum, user.getNickname(), user.getFullName(), user.getEmail(), user.getAbout()
-            );*/
-
             this.jdbc.update(
                     "INSERT INTO Members (forum, author) VALUES (?, ?)",
                     forum, user.getNickname()
@@ -93,20 +88,10 @@ public class Forums {
                         "lower(Members.forum) = lower(?) " +
                         (since != null ? "AND lower(Members.author) " + (desc ? "<" : ">") + " lower(?)"
                                 : "AND ?::TEXT IS NULL")+
-                        " ORDER BY lower(Members.author) " + order + " LIMIT ?",
+                        " ORDER BY lower(Users.nickname) " + order + " LIMIT ?",
                 new UserData(),
                 forum, since, limit
         );
-
-        /*return this.jdbc.query(
-                "SELECT *, author AS nickname FROM Members WHERE " +
-                        "lower(forum) = lower(?) " +
-                        (since != null ? "AND lower(author) " + (desc ? "<" : ">") + " lower(?)"
-                                       : "AND ?::TEXT IS NULL")+
-                        " ORDER BY lower(author) " + order + " LIMIT ?",
-                new UserData(),
-                forum, since, limit
-        );*/
     }
 
 }
