@@ -2,7 +2,7 @@ SET SYNCHRONOUS_COMMIT = 'off';
 
 
 DROP TABLE IF EXISTS Users;
-CREATE TABLE Users (
+CREATE TABLE IF NOT EXISTS Users (
   nickname TEXT,
   fullname TEXT,
   email TEXT UNIQUE,
@@ -19,7 +19,7 @@ CREATE UNIQUE INDEX UsersEmail ON Users (lower(email));
 
 
 DROP TABLE IF EXISTS Forums;
-CREATE TABLE Forums (
+CREATE TABLE IF NOT EXISTS Forums (
   slug   TEXT UNIQUE,
   title  TEXT,
   author TEXT,
@@ -32,7 +32,7 @@ CREATE UNIQUE INDEX ForumsSlug ON Forums (lower(slug));
 
 
 DROP TABLE IF EXISTS Threads;
-CREATE TABLE Threads (
+CREATE TABLE IF NOT EXISTS Threads (
   id SERIAL,
   slug TEXT UNIQUE,
   author TEXT,
@@ -57,7 +57,7 @@ CREATE INDEX ThreadsCreated ON Threads (created);
 
 
 DROP TABLE IF EXISTS Posts;
-CREATE TABLE Posts (
+CREATE TABLE IF NOT EXISTS Posts (
   id SERIAL,
   author TEXT,
   forum TEXT,
@@ -82,16 +82,20 @@ DROP INDEX IF EXISTS PostsParent;
 CREATE INDEX PostsParent ON Posts (parent);
 
 
---DROP INDEX IF EXISTS PostsCreated;
---CREATE INDEX PostsCreated ON Posts (created);
-
-
 DROP INDEX IF EXISTS PostsThread;
 CREATE INDEX PostsThread ON Posts (thread);
 
 
+DROP INDEX IF EXISTS PostsThreadId;
+CREATE INDEX PostsThreadId ON Posts (thread, id);
+
+
+DROP INDEX IF EXISTS PostsThreadParentId;
+CREATE INDEX PostsThreadParentId ON Posts (thread, parent, id);
+
+
 DROP TABLE IF EXISTS Votes;
-CREATE TABLE Votes (
+CREATE TABLE IF NOT EXISTS Votes (
   thread INT,
   author TEXT,
   voice INT
@@ -103,10 +107,14 @@ CREATE UNIQUE INDEX VotesThreadAuthor ON Votes (thread, lower(author));
 
 
 DROP TABLE IF EXISTS Members;
-CREATE TABLE Members (
+CREATE TABLE IF NOT EXISTS Members (
   forum TEXT,
   author TEXT
 );
+
+
+DROP INDEX IF EXISTS MembersForum;
+CREATE INDEX MembersForum ON Members (lower(forum));
 
 
 DROP INDEX IF EXISTS MembersForumAuthor;
