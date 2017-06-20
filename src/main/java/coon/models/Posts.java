@@ -58,7 +58,7 @@ public class Posts {
                         "    \n" +
                         "    DROP TABLE parent;\n" +
                         "  ELSE\n" +
-                        "    NEW.path = array[]::INT[] || NEW.id;\n" +
+                        "    NEW.path = array_agg(NEW.id);\n" +
                         "  END IF;\n" +
                         "\n" +
                         "  RETURN NEW;\n" +
@@ -147,8 +147,7 @@ public class Posts {
         return this.jdbc.query(
                 "SELECT * FROM Posts WHERE thread = ? " +
                         "ORDER BY" +
-                        "   created " + order +
-                        " , id " + order +
+                        " id " + order +
                         " LIMIT ? OFFSET ?",
                 new PostData(),
                 thread.getId(), limit, offset
@@ -163,8 +162,6 @@ public class Posts {
                 "SELECT * FROM Posts WHERE thread = ? " +
                         "ORDER BY" +
                         "   path " + order +
-                        " , created " + order +
-                        " , id " + order +
                         " LIMIT ? OFFSET ?",
                 new PostData(),
                 thread.getId(), limit, offset
@@ -177,16 +174,16 @@ public class Posts {
 
         return this.jdbc.query(
                 "WITH Roots AS (" +
-                            "SELECT id FROM Posts WHERE thread = ? AND parent = 0 " +
+                            "SELECT path FROM Posts WHERE thread = ? AND parent = 0 " +
                             "ORDER BY" +
-                            " created " + order +
-                            " , id " + order +
+                            " id " + order +
                             " LIMIT ? OFFSET ?" +
-                        ") SELECT * FROM Posts WHERE thread = ? AND Posts.path[1] IN (SELECT id FROM Roots)" +
-                        "ORDER BY" +
-                        "   path " + order +
-                        " , created " + order +
-                        " , id " + order,
+                        ") SELECT " +
+                        " Posts.id, Posts.author, Posts.forum, Posts.created, Posts.message, Posts.thread, " +
+                        "   Posts.parent, Posts.isEdited " +
+                        "FROM Posts JOIN Roots ON Roots.path <@ Posts.path WHERE thread = ?" +
+                        " ORDER BY " +
+                        "   Posts.path " + order,
                 new PostData(),
                 thread.getId(), limit, offset, thread.getId()
         );

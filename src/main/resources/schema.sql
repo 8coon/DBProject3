@@ -86,6 +86,10 @@ DROP INDEX IF EXISTS PostsCreated;
 CREATE INDEX PostsCreated ON Posts (created);
 
 
+DROP INDEX IF EXISTS PostsThread;
+CREATE INDEX PostsTHread ON Posts (thread);
+
+
 DROP TABLE IF EXISTS Votes;
 CREATE TABLE Votes (
   thread INT,
