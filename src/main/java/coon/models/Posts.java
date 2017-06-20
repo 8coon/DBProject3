@@ -33,11 +33,11 @@ public class Posts {
         this.users = users;
         this.forums = forums;
 
-        if (Application.triggered.compareAndSet(true, true)) {
+        /*if (Application.triggered.compareAndSet(true, true)) {
             return;
-        }
+        }*/
 
-        this.jdbc.execute(
+        /*this.jdbc.execute(
                 "CREATE OR REPLACE FUNCTION onPostInsert() RETURNS trigger AS $func$\n" +
                         "BEGIN\n" +
                         "\n" +
@@ -68,9 +68,9 @@ public class Posts {
                         "\n" +
                         "\n" +
                         "DROP TRIGGER IF EXISTS postCheck ON Posts;\n" +
-                        "CREATE TRIGGER postCheck BEFORE INSERT OR UPDATE ON Posts" +
+                        "CREATE TRIGGER postCheck AFTER INSERT ON Posts" +
                         "   FOR EACH ROW EXECUTE PROCEDURE onPostInsert();"
-        );
+        );*/
     }
 
 
@@ -88,15 +88,31 @@ public class Posts {
 
             PreparedStatement ps = conn.prepareStatement(
                     "INSERT INTO Posts " +
-                            "(author, forum, thread, message, created, isEdited, parent)" +
+                            "(author, forum, thread, message, created, isEdited, parent, path, id)" +
                             " VALUES " +
-                            "(?, ?, ?, ?, ?::TIMESTAMPTZ, ?, ?)",
-                    Statement.RETURN_GENERATED_KEYS
+                            "(?, ?, ?, ?, ?::TIMESTAMPTZ, ?, ?, " +
+                            "   (SELECT path FROM Posts AS P WHERE P.id = ? LIMIT 1) || ?::INT, ?)",
+                    Statement.NO_GENERATED_KEYS
             );
 
             for (PostData post: posts) {
+                if (post.getParent() > 0) {
+                    try {
+                        int parentThread = this.jdbc.queryForObject(
+                                "SELECT thread FROM Posts WHERE id = ? LIMIT 1",
+                                Integer.class, post.getParent()
+                        );
+
+                        if (parentThread != thread.getId()) {
+                            throw new SQLException();
+                        }
+                    } catch (EmptyResultDataAccessException e) {
+                        throw new SQLException();
+                    }
+                }
+
+                post.setId(this.jdbc.queryForObject("SELECT nextVal('Posts_id_seq')", Integer.class));
                 post.setAuthor(this.users.get(post.getAuthor()).getNickname());
-                this.forums.addMember(thread.getForum(), post.getAuthor());
                 post.setForum(thread.getForum());
                 post.setThread(thread.getId());
                 post.setCreated(created);
@@ -108,21 +124,21 @@ public class Posts {
                 ps.setString(5, post.getCreated());
                 ps.setBoolean(6, post.isEdited());
                 ps.setInt(7, post.getParent());
+                ps.setInt(8, post.getParent());
+                ps.setInt(9, post.getId());
+                ps.setInt(10, post.getId());
 
                 ps.addBatch();
             }
 
             ps.executeBatch();
             this.forums.incStat(thread.getForum(), posts.size(), 0);
-            ResultSet ids = ps.getGeneratedKeys();
 
-            while (ids.next()) {
-                posts.get(ids.getRow() - 1).setId(ids.getInt("id"));
+            for (PostData post: posts) {
+                this.forums.addMember(post.getForum(), post.getAuthor());
             }
 
-            ids.close();
             conn.close();
-
             return posts;
 
         } catch (SQLException e1) {
@@ -134,7 +150,7 @@ public class Posts {
                 }
             }
 
-            throw new DataIntegrityViolationException("Parent post belongs to another thread");
+            throw new DataIntegrityViolationException("");
         }
     }
 
