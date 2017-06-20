@@ -63,7 +63,7 @@ public class Forums {
             this.jdbc.queryForObject(
                     "SELECT author FROM Members WHERE " +
                             "lower(forum) = lower(?) AND lower(author) = lower(?) " +
-                            " LIMIT 1",
+                            " LIMIT 1 FOR UPDATE",
                     String.class,
                     forum, author
             );
