@@ -1,4 +1,4 @@
-SET SYNCHRONOUS_COMMIT = 'off';
+--SET SYNCHRONOUS_COMMIT = 'off';
 
 
 DROP TABLE IF EXISTS Users;
@@ -23,8 +23,8 @@ CREATE TABLE Forums (
   slug   TEXT UNIQUE,
   title  TEXT,
   author TEXT,
-  posts INT,
-  threads INT
+  posts INT DEFAULT 0,
+  threads INT DEFAULT 0
 );
 
 DROP INDEX IF EXISTS ForumsSlug;
@@ -101,10 +101,7 @@ CREATE UNIQUE INDEX VotesThreadAuthor ON Votes (thread, lower(author));
 DROP TABLE IF EXISTS Members;
 CREATE TABLE Members (
   forum TEXT,
-  author TEXT,
-  fullname TEXT,
-  email TEXT,
-  about TEXT
+  author TEXT
 );
 
 

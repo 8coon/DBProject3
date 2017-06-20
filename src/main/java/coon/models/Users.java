@@ -76,11 +76,6 @@ public class Users {
     public UserData set(String nickname, UserData user) {
         UserData newUser = this.get(nickname).merge(user);
 
-        this.jdbc.update(
-                "UPDATE Members SET fullname = ?, email = ?, about = ? WHERE lower(author) = lower(?)",
-                newUser.getFullName(), newUser.getEmail(), newUser.getAbout(), newUser.getNickname()
-        );
-
         return this.jdbc.queryForObject(
                 "UPDATE Users SET fullname = ?, email = ?, about = ? WHERE lower(nickname) = lower(?)" +
                         "RETURNING *",

@@ -119,12 +119,10 @@ public class Posts {
                 posts.get(ids.getRow() - 1).setId(ids.getInt("id"));
             }
 
-            ForumData forum = this.forums.get(thread.getForum());
-            forum.setPosts(forum.getPosts() + posts.size());
-            this.forums.set(forum);
-
             ids.close();
             conn.close();
+
+            this.forums.incStat(thread.getForum(), posts.size(), 0);
             return posts;
 
         } catch (SQLException e1) {

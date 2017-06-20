@@ -49,11 +49,11 @@ public class Forums {
     }
 
 
-    public ForumData set(ForumData forum) {
-        return this.jdbc.queryForObject(
-                "UPDATE Forums SET posts = ?, threads = ? WHERE lower(slug) = lower(?) RETURNING *",
-                new ForumData(),
-                forum.getPosts(), forum.getThreads(), forum.getSlug()
+    public void incStat(String slug, int postDelta, int threadDelta) {
+        this.jdbc.update(
+                "UPDATE Forums SET posts = posts + ?, threads = threads + ? " +
+                        "WHERE lower(slug) = lower(?)",
+                postDelta, threadDelta, slug
         );
     }
 
@@ -69,11 +69,6 @@ public class Forums {
             );
         } catch (EmptyResultDataAccessException e) {
             UserData user = this.users.get(author);
-
-            /*this.jdbc.update(
-                    "INSERT INTO Members (forum, author, fullname, email, about) VALUES (?, ?, ?, ?, ?)",
-                    forum, user.getNickname(), user.getFullName(), user.getEmail(), user.getAbout()
-            );*/
 
             this.jdbc.update(
                     "INSERT INTO Members (forum, author) VALUES (?, ?)",
@@ -97,16 +92,6 @@ public class Forums {
                 new UserData(),
                 forum, since, limit
         );
-
-        /*return this.jdbc.query(
-                "SELECT *, author AS nickname FROM Members WHERE " +
-                        "lower(forum) = lower(?) " +
-                        (since != null ? "AND lower(author) " + (desc ? "<" : ">") + " lower(?)"
-                                       : "AND ?::TEXT IS NULL")+
-                        " ORDER BY lower(author) " + order + " LIMIT ?",
-                new UserData(),
-                forum, since, limit
-        );*/
     }
 
 }

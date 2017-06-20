@@ -36,9 +36,7 @@ public class Threads {
         thread.setAuthor(author.getNickname());
         thread.setForum(forum.getSlug());
 
-        forum = this.forums.get(forum.getSlug());
-        forum.setThreads(forum.getThreads() + 1);
-        this.forums.set(forum);
+        this.forums.incStat(forum.getSlug(), 0, 1);
         this.forums.addMember(forum.getSlug(), author.getNickname());
 
         if (thread.getCreated() == null) {
