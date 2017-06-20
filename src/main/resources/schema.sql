@@ -110,4 +110,4 @@ CREATE TABLE Members (
 
 
 DROP INDEX IF EXISTS MembersForumAuthor;
-CREATE UNIQUE INDEX MembersForumAuthor ON Members (lower(forum), lower(author));
+CREATE INDEX MembersForumAuthor ON Members (lower(forum), lower(author));

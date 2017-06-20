@@ -63,7 +63,7 @@ public class Forums {
             this.jdbc.queryForObject(
                     "SELECT author FROM Members WHERE " +
                             "lower(forum) = lower(?) AND lower(author) = lower(?) " +
-                            " LIMIT 1 FOR UPDATE",
+                            " LIMIT 1",
                     String.class,
                     forum, author
             );
@@ -75,6 +75,15 @@ public class Forums {
                     forum, user.getNickname()
             );
         }
+    }
+
+
+    public void incStat(String slug, int postDelta, int threadDelta) {
+        this.jdbc.update(
+                "UPDATE Forums SET posts = posts + ?, threads = threads + ? " +
+                        "WHERE lower(slug) = lower(?)",
+                postDelta, threadDelta, slug
+        );
     }
 
 
