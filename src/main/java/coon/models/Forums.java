@@ -49,15 +49,6 @@ public class Forums {
     }
 
 
-    public ForumData set(ForumData forum) {
-        return this.jdbc.queryForObject(
-                "UPDATE Forums SET posts = ?, threads = ? WHERE lower(slug) = lower(?) RETURNING *",
-                new ForumData(),
-                forum.getPosts(), forum.getThreads(), forum.getSlug()
-        );
-    }
-
-
     public void addMember(String forum, String author) {
         try {
             this.jdbc.queryForObject(

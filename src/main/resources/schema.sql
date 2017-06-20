@@ -23,8 +23,8 @@ CREATE TABLE Forums (
   slug   TEXT UNIQUE,
   title  TEXT,
   author TEXT,
-  posts INT,
-  threads INT
+  posts INT DEFAULT 0,
+  threads INT DEFAULT 0
 );
 
 DROP INDEX IF EXISTS ForumsSlug;

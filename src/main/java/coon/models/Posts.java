@@ -113,6 +113,7 @@ public class Posts {
             }
 
             ps.executeBatch();
+            this.forums.incStat(thread.getForum(), posts.size(), 0);
             ResultSet ids = ps.getGeneratedKeys();
 
             while (ids.next()) {
@@ -122,7 +123,6 @@ public class Posts {
             ids.close();
             conn.close();
 
-            this.forums.incStat(thread.getForum(), posts.size(), 0);
             return posts;
 
         } catch (SQLException e1) {
