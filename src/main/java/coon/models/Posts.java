@@ -3,20 +3,25 @@ package coon.models;
 
 import coon.Application;
 import coon.models.data.*;
+import org.postgresql.ds.PGPoolingDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.sql.DataSource;
+import java.io.PrintWriter;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 
 @Repository
@@ -37,7 +42,63 @@ public class Posts {
             return;
         }
 
-        this.jdbc.execute(
+        //DataSource ds = this.jdbc.getDataSource();
+
+        /*this.jdbc.setDataSource(new DataSource() {
+            @Override
+            public Connection getConnection() throws SQLException {
+                Connection conn = ds.getConnection();
+                conn.setAutoCommit(false);
+
+                return conn;
+            }
+
+            @Override
+            public Connection getConnection(String username, String password) throws SQLException {
+                Connection conn = ds.getConnection(username, password);
+                conn.setAutoCommit(false);
+
+                return conn;
+            }
+
+            @Override
+            public <T> T unwrap(Class<T> iFace) throws SQLException {
+                return ds.unwrap(iFace);
+            }
+
+            @Override
+            public boolean isWrapperFor(Class<?> iFace) throws SQLException {
+                return ds.isWrapperFor(iFace);
+            }
+
+            @Override
+            public PrintWriter getLogWriter() throws SQLException {
+                return ds.getLogWriter();
+            }
+
+            @Override
+            public void setLogWriter(PrintWriter out) throws SQLException {
+                ds.setLogWriter(out);
+            }
+
+            @Override
+            public void setLoginTimeout(int seconds) throws SQLException {
+                ds.setLoginTimeout(seconds);
+            }
+
+            @Override
+            public int getLoginTimeout() throws SQLException {
+                return ds.getLoginTimeout();
+            }
+
+            @Override
+            public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+                return ds.getParentLogger();
+            }
+        });*/
+
+
+        /*this.jdbc.execute(
                 "CREATE OR REPLACE FUNCTION onPostInsert() RETURNS trigger AS $func$\n" +
                         "BEGIN\n" +
                         "\n" +
@@ -70,7 +131,7 @@ public class Posts {
                         "DROP TRIGGER IF EXISTS postCheck ON Posts;\n" +
                         "CREATE TRIGGER postCheck BEFORE INSERT OR UPDATE ON Posts" +
                         "   FOR EACH ROW EXECUTE PROCEDURE onPostInsert();"
-        );
+        );*/
     }
 
 
@@ -145,8 +206,7 @@ public class Posts {
         return this.jdbc.query(
                 "SELECT * FROM Posts WHERE thread = ? " +
                         "ORDER BY" +
-                        "   created " + order +
-                        " , id " + order +
+                        " id " + order +
                         " LIMIT ? OFFSET ?",
                 new PostData(),
                 thread.getId(), limit, offset
@@ -160,9 +220,7 @@ public class Posts {
         return this.jdbc.query(
                 "SELECT * FROM Posts WHERE thread = ? " +
                         "ORDER BY" +
-                        "   path " + order +
-                        " , created " + order +
-                        " , id " + order +
+                        " path " + order +
                         " LIMIT ? OFFSET ?",
                 new PostData(),
                 thread.getId(), limit, offset
@@ -175,18 +233,15 @@ public class Posts {
 
         return this.jdbc.query(
                 "WITH Roots AS (" +
-                            "SELECT id FROM Posts WHERE thread = ? AND parent = 0 " +
+                            "SELECT path FROM Posts WHERE thread = ? AND parent = 0 " +
                             "ORDER BY" +
-                            " created " + order +
-                            " , id " + order +
+                            " path " + order +
                             " LIMIT ? OFFSET ?" +
-                        ") SELECT * FROM Posts WHERE thread = ? AND Posts.path[1] IN (SELECT id FROM Roots)" +
-                        "ORDER BY" +
-                        "   path " + order +
-                        " , created " + order +
-                        " , id " + order,
+                        ") SELECT * FROM Posts JOIN Roots ON (Roots.path <@ Posts.path)" +
+                        " ORDER BY " +
+                        "   Posts.path " + order,
                 new PostData(),
-                thread.getId(), limit, offset, thread.getId()
+                thread.getId(), limit, offset
         );
     }
 

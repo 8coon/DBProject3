@@ -106,6 +106,8 @@ public class Thread {
             @RequestParam(name = "sort", defaultValue = "flat", required = false) String sort
     ) {
         ThreadData thread;
+        //System.out.println("Get posts " + slugOrId + " " + String.valueOf(limit) + " " + String.valueOf(offset)
+        //        + " " + String.valueOf(desc) + " " + String.valueOf(sort));
 
         try {
             thread = this.threads.resolve(slugOrId);
