@@ -59,7 +59,8 @@ public class Threads {
 
     public ThreadData get(int id) {
         return this.jdbc.queryForObject(
-                "SELECT * FROM Threads WHERE id = ? LIMIT 1",
+                "SELECT author, created, forum, message, title, slug, id, votes " +
+                        " FROM Threads WHERE id = ? LIMIT 1",
                 new ThreadData(),
                 id
         );
@@ -68,7 +69,8 @@ public class Threads {
 
     public ThreadData withSlug(String slug) {
         return this.jdbc.queryForObject(
-                "SELECT * FROM Threads WHERE lower(slug) = lower(?) LIMIT 1",
+                "SELECT author, created, forum, message, title, slug, id, votes " +
+                        " FROM Threads WHERE lower(slug) = lower(?) LIMIT 1",
                 new ThreadData(),
                 slug
         );
@@ -77,7 +79,7 @@ public class Threads {
 
     public List<ThreadData> all(String forum, String since, int limit, boolean desc) {
         return this.jdbc.query(
-                "SELECT * FROM Threads " +
+                "SELECT author, created, forum, message, title, slug, id, votes FROM Threads " +
                         "WHERE lower(forum) = lower(?) AND " +
                         (since != null
                                 ?
@@ -99,6 +101,21 @@ public class Threads {
                 new ThreadData(),
                 forum, since, limit
         );
+    }
+
+
+    public int fastResolve(String slugOrId) {
+        try {
+            int threadId = Integer.valueOf(slugOrId);
+
+            return this.jdbc.queryForObject(
+                    "SELECT id FROM Threads WHERE id = ? LIMIT 1",
+                    Integer.class,
+                    threadId
+            );
+        } catch (NumberFormatException e1) {
+            return this.id(slugOrId);
+        }
     }
 
 
@@ -160,6 +177,15 @@ public class Threads {
                         " WHERE id = ? RETURNING *",
                 new ThreadData(),
                 newThread.getMessage(), newThread.getTitle(), newThread.getId()
+        );
+    }
+
+
+    public int id(String slug) {
+        return this.jdbc.queryForObject(
+                "SELECT id FROM Threads WHERE lower(slug) = lower(?) LIMIT 1",
+                Integer.class,
+                slug
         );
     }
 

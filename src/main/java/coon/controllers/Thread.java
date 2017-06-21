@@ -105,10 +105,10 @@ public class Thread {
             @RequestParam(name = "desc", defaultValue = "false", required = false) boolean desc,
             @RequestParam(name = "sort", defaultValue = "flat", required = false) String sort
     ) {
-        ThreadData thread;
+        int threadId;
 
         try {
-            thread = this.threads.resolve(slugOrId);
+            threadId = this.threads.fastResolve(slugOrId);
         } catch (EmptyResultDataAccessException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -117,13 +117,13 @@ public class Thread {
         int marker = 0;
 
         if (sort.equalsIgnoreCase("flat")) {
-            posts = this.posts.flat(thread, offset, limit, desc);
+            posts = this.posts.flat(threadId, offset, limit, desc);
             marker = posts.size();
         } else if (sort.equalsIgnoreCase("tree")) {
-            posts = this.posts.tree(thread, offset, limit, desc);
+            posts = this.posts.tree(threadId, offset, limit, desc);
             marker = posts.size();
         } else {
-            posts = this.posts.parentTree(thread, offset, limit, desc);
+            posts = this.posts.parentTree(threadId, offset, limit, desc);
 
             for (PostData post: posts) {
                 if (post.getParent() == 0) {

@@ -138,7 +138,7 @@ public class Forum {
             @RequestParam(name = "desc", defaultValue = "false", required = false) boolean desc
     ) {
         try {
-            this.forums.get(slug);
+            this.forums.realSlug(slug);
         } catch (EmptyResultDataAccessException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

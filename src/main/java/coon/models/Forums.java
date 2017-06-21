@@ -42,7 +42,7 @@ public class Forums {
 
     public ForumData get(String slug) {
         return this.jdbc.queryForObject(
-                "SELECT * FROM Forums WHERE lower(slug) = lower(?) LIMIT 1",
+                "SELECT slug, title, author, posts, threads FROM Forums WHERE lower(slug) = lower(?) LIMIT 1",
                 new ForumData(),
                 slug
         );
@@ -91,6 +91,15 @@ public class Forums {
                         " ORDER BY lower(Users.nickname) " + order + " LIMIT ?",
                 new UserData(),
                 forum, since, limit
+        );
+    }
+
+
+    public String realSlug(String slug) {
+        return this.jdbc.queryForObject(
+                "SELECT slug FROM Forums WHERE lower(slug) = lower(?) LIMIT 1",
+                String.class,
+                slug
         );
     }
 

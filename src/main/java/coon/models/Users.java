@@ -37,7 +37,7 @@ public class Users {
 
     public UserData get(String nickname) {
         return this.jdbc.queryForObject(
-                "SELECT * FROM Users WHERE lower(nickname) = lower(?) LIMIT 1",
+                "SELECT nickname, fullname, email, about FROM Users WHERE lower(nickname) = lower(?) LIMIT 1",
                 new UserData(),
                 nickname
         );
@@ -51,7 +51,7 @@ public class Users {
             }
 
             return this.jdbc.query(
-                    "SELECT * FROM Users WHERE lower(nickname) = lower(?)",
+                    "SELECT nickname, fullname, email, about FROM Users WHERE lower(nickname) = lower(?)",
                     new UserData(),
                     nickname
             );
@@ -59,14 +59,14 @@ public class Users {
 
         if (nickname == null) {
             return this.jdbc.query(
-                    "SELECT * FROM Users WHERE lower(email) = lower(?)",
+                    "SELECT nickname, fullname, email, about FROM Users WHERE lower(email) = lower(?)",
                     new UserData(),
                     email
             );
         }
 
         return this.jdbc.query(
-                "SELECT * FROM Users WHERE lower(email) = lower(?) OR lower(nickname) = lower(?)",
+                "SELECT nickname, fullname, email, about FROM Users WHERE lower(email) = lower(?) OR lower(nickname) = lower(?)",
                 new UserData(),
                 email, nickname
         );
@@ -81,6 +81,15 @@ public class Users {
                         "RETURNING *",
                 new UserData(),
                 newUser.getFullName(), newUser.getEmail(), newUser.getAbout(), newUser.getNickname()
+        );
+    }
+
+
+    public String realNickname(String nickname) {
+        return this.jdbc.queryForObject(
+                "SELECT nickname FROM Users WHERE lower(nickname) = lower(?) LIMIT 1",
+                String.class,
+                nickname
         );
     }
 

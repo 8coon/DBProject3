@@ -32,45 +32,6 @@ public class Posts {
         this.jdbc = jdbc;
         this.users = users;
         this.forums = forums;
-
-        /*if (Application.triggered.compareAndSet(true, true)) {
-            return;
-        }*/
-
-        /*this.jdbc.execute(
-                "CREATE OR REPLACE FUNCTION onPostInsert() RETURNS trigger AS $func$\n" +
-                        "BEGIN\n" +
-                        "\n" +
-                        "  IF NEW.parent > 0 THEN\n" +
-                        "    CREATE TEMPORARY TABLE parent AS" +
-                        "       SELECT thread, path FROM Posts WHERE id = NEW.parent LIMIT 1;\n" +
-                        "    IF (SELECT count(*) FROM parent) = 0 THEN\n" +
-                        "      DROP TABLE parent;\n" +
-                        "      RAISE EXCEPTION 'Parent post does not exist!';\n" +
-                        "    END IF;\n" +
-                        "    \n" +
-                        "    NEW.path = (SELECT path FROM parent) || NEW.id;\n" +
-                        "    \n" +
-                        "    IF NEW.thread <> (SELECT thread FROM parent) THEN\n" +
-                        "      DROP TABLE parent;" +
-                        "      RAISE EXCEPTION 'Parent post belongs to another thread!';\n" +
-                        "    END IF;\n" +
-                        "    \n" +
-                        "    DROP TABLE parent;\n" +
-                        "  ELSE\n" +
-                        "    NEW.path = array_agg(NEW.id);\n" +
-                        "  END IF;\n" +
-                        "\n" +
-                        "  RETURN NEW;\n" +
-                        "\n" +
-                        "END;\n" +
-                        "$func$ LANGUAGE plpgsql;\n" +
-                        "\n" +
-                        "\n" +
-                        "DROP TRIGGER IF EXISTS postCheck ON Posts;\n" +
-                        "CREATE TRIGGER postCheck AFTER INSERT ON Posts" +
-                        "   FOR EACH ROW EXECUTE PROCEDURE onPostInsert();"
-        );*/
     }
 
 
@@ -155,35 +116,37 @@ public class Posts {
     }
 
 
-    public List<PostData> flat(ThreadData thread, int offset, int limit, boolean desc) {
+    public List<PostData> flat(int threadId, int offset, int limit, boolean desc) {
         String order = (desc ? "DESC" : "ASC");
 
         return this.jdbc.query(
-                "SELECT * FROM Posts WHERE thread = ? " +
+                "SELECT author, forum, thread, message, created, isEdited, parent, id " +
+                        " FROM Posts WHERE thread = ? " +
                         "ORDER BY" +
                         " id " + order +
                         " LIMIT ? OFFSET ?",
                 new PostData(),
-                thread.getId(), limit, offset
+                threadId, limit, offset
         );
     }
 
 
-    public List<PostData> tree(ThreadData thread, int offset, int limit, boolean desc) {
+    public List<PostData> tree(int threadId, int offset, int limit, boolean desc) {
         String order = (desc ? "DESC" : "ASC");
 
         return this.jdbc.query(
-                "SELECT * FROM Posts WHERE thread = ? " +
+                "SELECT author, forum, thread, message, created, isEdited, parent, id, path " +
+                        " FROM Posts WHERE thread = ? " +
                         "ORDER BY" +
                         "   path " + order +
                         " LIMIT ? OFFSET ?",
                 new PostData(),
-                thread.getId(), limit, offset
+                threadId, limit, offset
         );
     }
 
 
-    public List<PostData> parentTree(ThreadData thread, int offset, int limit, boolean desc) {
+    public List<PostData> parentTree(int threadId, int offset, int limit, boolean desc) {
         String order = (desc ? "DESC" : "ASC");
 
         return this.jdbc.query(
@@ -199,7 +162,7 @@ public class Posts {
                         " ORDER BY " +
                         "   Posts.path " + order,
                 new PostData(),
-                thread.getId(), limit, offset, thread.getId()
+                threadId, limit, offset, threadId
         );
     }
 
@@ -272,7 +235,8 @@ public class Posts {
 
     public PostData set(int id, PostData post) {
         PostData oldPost = this.jdbc.queryForObject(
-                "SELECT * FROM Posts WHERE id = ? LIMIT 1",
+                "SELECT  author, forum, thread, message, created, isEdited, parent, id" +
+                        " FROM Posts WHERE id = ? LIMIT 1",
                 new PostData(),
                 id
         );
