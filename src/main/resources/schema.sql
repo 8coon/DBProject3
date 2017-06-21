@@ -98,6 +98,10 @@ DROP INDEX IF EXISTS PostsThreadId;
 CREATE INDEX PostsThreadId ON Posts (thread, id);
 
 
+DROP INDEX IF EXISTS PostsThreadPath;
+CREATE INDEX PostsThreadPath ON Posts (thread, path);
+
+
 DROP INDEX IF EXISTS PostsThreadParentId;
 CREATE INDEX PostsThreadParentId ON Posts (thread, parent, id);
 
