@@ -106,15 +106,24 @@ public class Threads {
 
     public int fastResolve(String slugOrId) {
         try {
-            int threadId = Integer.valueOf(slugOrId);
-
-            return this.jdbc.queryForObject(
-                    "SELECT id FROM Threads WHERE id = ? LIMIT 1",
-                    Integer.class,
-                    threadId
-            );
+            return Integer.valueOf(slugOrId);
         } catch (NumberFormatException e1) {
             return this.id(slugOrId);
+        }
+    }
+
+
+    public boolean exists(int id) {
+        try {
+            this.jdbc.queryForObject(
+                    "SELECT id FROM Threads WHERE id = ? LIMIT 1",
+                    Integer.class,
+                    id
+            );
+
+            return true;
+        } catch (EmptyResultDataAccessException e) {
+            return false;
         }
     }
 

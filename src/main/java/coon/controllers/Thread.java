@@ -132,6 +132,12 @@ public class Thread {
             }
         }
 
+        if (posts.size() == 0) {
+            if (!this.threads.exists(threadId)) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        }
+
         return new ResponseEntity<>(
                 new PostQueryData(offset + marker, posts),
                 HttpStatus.OK
