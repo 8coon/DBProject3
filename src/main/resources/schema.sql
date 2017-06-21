@@ -52,6 +52,14 @@ DROP INDEX IF EXISTS ThreadsSlug;
 CREATE UNIQUE INDEX ThreadsSlug ON Threads (lower(slug));
 
 
+DROP INDEX IF EXISTS ThreadsAuthor;
+CREATE INDEX ThreadsAuthor ON Threads (lower(author));
+
+
+DROP INDEX IF EXISTS ThreadsForum;
+CREATE INDEX ThreadsForum ON Threads (lower(forum));
+
+
 DROP INDEX IF EXISTS ThreadsCreated;
 CREATE INDEX ThreadsCreated ON Threads (created);
 
@@ -115,6 +123,10 @@ CREATE TABLE IF NOT EXISTS Members (
 
 DROP INDEX IF EXISTS MembersForum;
 CREATE INDEX MembersForum ON Members (lower(forum));
+
+
+DROP INDEX IF EXISTS MembersAuthor;
+CREATE INDEX MembersAuthor ON Members (lower(author));
 
 
 DROP INDEX IF EXISTS MembersForumAuthor;
