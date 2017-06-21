@@ -23,10 +23,6 @@ RUN echo "shared_buffers = 512MB" >> /etc/postgresql/$PGVER/main/postgresql.conf
 RUN echo "effective_cache_size = 1536MB" >> /etc/postgresql/$PGVER/main/postgresql.conf
 RUN echo "work_mem = 5242kB" >> /etc/postgresql/$PGVER/main/postgresql.conf
 RUN echo "maintenance_work_mem = 128MB" >> /etc/postgresql/$PGVER/main/postgresql.conf
-RUN echo "min_wal_size = 1GB" >> /etc/postgresql/$PGVER/main/postgresql.conf
-RUN echo "max_wal_size = 2GB" >> /etc/postgresql/$PGVER/main/postgresql.conf
-RUN echo "checkpoint_completion_target = 0.7" >> /etc/postgresql/$PGVER/main/postgresql.conf
-RUN echo "wal_buffers = 16MB" >> /etc/postgresql/$PGVER/main/postgresql.conf
 RUN echo "default_statistics_target = 100" >> /etc/postgresql/$PGVER/main/postgresql.conf
 
 EXPOSE 5432
